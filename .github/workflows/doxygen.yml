@@ -1,0 +1,47 @@
+name: doxygen-docs
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Generate Doxygen documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen
+      - name: Generate Doxygen config and run
+        shell: bash
+        run: |
+          cd laboratories/cicd-documentation
+          cat > Doxyfile <<'EOF'
+          PROJECT_NAME = "cicd-documentation"
+          OUTPUT_DIRECTORY = html
+          INPUT = .
+          FILE_PATTERNS = *.py
+          RECURSIVE = NO
+          EXTRACT_ALL = YES
+          EXTRACT_PRIVATE = YES
+          EXTRACT_STATIC = YES
+          QUIET = YES
+          GENERATE_LATEX = NO
+          GENERATE_TREEVIEW = YES
+          SOURCE_BROWSER = YES
+          INLINE_SOURCES = NO
+          STRIP_FROM_PATH = .
+          FULL_PATH_NAMES = NO
+          HAVE_DOT = NO
+          EOF
+          doxygen Doxyfile
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-docs
+          path: laboratories/cicd-documentation/html
